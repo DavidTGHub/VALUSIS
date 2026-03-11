@@ -1,586 +1,724 @@
 <!DOCTYPE html>
-<html lang="sr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emocionalni odnosi ljudi sa AI - Prezentacija</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>VALUSIS · Payment Calculator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0a0a; --surface: #141414; --surface2: #1a1a1a;
+    --border: #2a2a2a; --border2: #333; --text: #e0e0e0;
+    --muted: #888; --dim: #555; --white: #fff;
+    --green: #22c55e; --gold: #f59e0b; --discord: #7b8aff;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Mono', monospace; min-height: 100vh; }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+  /* HEADER */
+  .header { padding: 20px 28px 16px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-end; }
+  .header-label { font-size: 9px; letter-spacing: 4px; color: var(--dim); text-transform: uppercase; margin-bottom: 4px; }
+  .header-title { font-family: 'Syne', sans-serif; font-size: 20px; color: var(--white); letter-spacing: -0.5px; }
+  .cycle-total-label { font-size: 9px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 2px; text-align: right; }
+  .cycle-total-value { font-size: 22px; font-weight: 700; color: #333; transition: color 0.2s; text-align: right; }
+  .cycle-total-value.active { color: var(--white); }
 
-        .presentation-container {
-            width: 100%;
-            max-width: 1200px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
+  /* MAIN */
+  .main { padding: 24px 28px; max-width: 700px; margin: 0 auto; }
 
-        .slide {
-            min-height: 600px;
-            padding: 60px;
-            display: none;
-            animation: fadeIn 0.5s;
-        }
+  /* ENTRIES */
+  .entry { border-bottom: 1px solid var(--border); }
+  .entry-header { display: flex; justify-content: space-between; align-items: center; padding: 14px 0; cursor: pointer; user-select: none; }
+  .entry-left { display: flex; align-items: center; gap: 12px; }
+  .entry-num { font-size: 10px; color: var(--dim); min-width: 22px; }
+  .entry-name { font-size: 13px; color: #f0f0f0; font-weight: 500; }
+  .entry-meta { font-size: 10px; color: var(--dim); margin-top: 3px; }
+  .entry-right { display: flex; align-items: center; gap: 14px; text-align: right; }
+  .entry-total { font-size: 16px; font-weight: 700; color: var(--white); }
+  .entry-bonus-badge { font-size: 10px; color: var(--gold); margin-top: 1px; }
+  .entry-tag { font-size: 9px; padding: 2px 7px; border-radius: 3px; letter-spacing: 1px; display: inline-block; margin-top: 3px; }
+  .entry-tag.discord { background: #1e2050; color: var(--discord); border: 1px solid #3a3f7a; }
+  .entry-tag.standard { background: #1e1e1e; color: #666; border: 1px solid #2a2a2a; }
+  .entry-chevron { font-size: 10px; color: var(--dim); margin-left: 4px; }
+  .entry-body { display: none; padding-bottom: 18px; }
+  .entry-body.open { display: block; }
+  .breakdown-text { background: #0f0f0f; border: 1px solid var(--border); border-radius: 8px; padding: 16px 18px; font-size: 12px; line-height: 1.9; color: #aaa; white-space: pre-wrap; margin-bottom: 10px; }
+  .entry-actions { display: flex; gap: 8px; }
+  .btn-copy, .btn-remove { font-family: 'DM Mono', monospace; font-size: 10px; padding: 6px 14px; border-radius: 5px; cursor: pointer; letter-spacing: 0.5px; transition: all 0.15s; }
+  .btn-copy { background: var(--surface2); border: 1px solid var(--border2); color: var(--muted); }
+  .btn-copy:hover { color: #ccc; }
+  .btn-copy.copied { background: #0d1f0d; border-color: #22c55e55; color: var(--green); }
+  .btn-remove { background: transparent; border: 1px solid #3a1a1a; color: #854040; }
+  .btn-remove:hover { color: #c05050; }
 
-        .slide.active {
-            display: block;
-        }
+  /* EMPTY */
+  .empty { border: 1px dashed #252525; border-radius: 10px; padding: 44px 24px; text-align: center; margin-bottom: 16px; }
+  .empty-label { font-size: 10px; color: #444; letter-spacing: 3px; text-transform: uppercase; }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+  /* CREATE BUTTON */
+  .btn-create { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: #888; font-family: 'DM Mono', monospace; font-size: 10px; padding: 13px; cursor: pointer; letter-spacing: 2.5px; text-transform: uppercase; margin-bottom: 12px; transition: all 0.15s; }
+  .btn-create:hover { background: #1a1a1a; border-color: #3a3a3a; color: #bbb; }
 
-        .slide h1 {
-            color: #667eea;
-            font-size: 48px;
-            margin-bottom: 30px;
-            font-weight: 700;
-        }
+  /* FORM */
+  .form { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; margin-bottom: 16px; }
+  .form-title { font-size: 9px; color: var(--dim); letter-spacing: 3px; text-transform: uppercase; margin-bottom: 20px; }
+  .field-label { font-size: 9px; color: var(--dim); letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 5px; display: block; }
+  .field-group { margin-bottom: 14px; }
+  input[type="text"], input[type="number"] { background: #111; border: 1px solid #2a2a2a; border-radius: 6px; color: #e0e0e0; font-family: 'DM Mono', monospace; font-size: 12px; padding: 8px 11px; width: 100%; outline: none; transition: border-color 0.15s; }
+  input::placeholder { color: #333; }
+  input:focus { border-color: #444; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; }
+  .section-div { font-size: 9px; color: #555; letter-spacing: 2px; text-transform: uppercase; padding: 10px 0 8px; border-top: 1px solid #1e1e1e; margin: 6px 0 12px; }
 
-        .slide h2 {
-            color: #333;
-            font-size: 36px;
-            margin-bottom: 25px;
-            font-weight: 600;
-        }
+  /* RATE TYPE */
+  .rate-type-row { display: flex; gap: 6px; margin-bottom: 10px; }
+  .rate-type-btn { font-family: 'DM Mono', monospace; font-size: 10px; padding: 7px 14px; border-radius: 6px; cursor: pointer; letter-spacing: 0.5px; border: 1px solid #2a2a2a; background: #111; color: #666; transition: all 0.15s; }
+  .rate-type-btn.active-std { background: var(--white); color: #000; border-color: var(--white); }
+  .rate-type-btn.active-disc { background: #1e2050; color: var(--discord); border-color: var(--discord); }
 
-        .slide h3 {
-            color: #555;
-            font-size: 28px;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
+  /* RATE PRESETS */
+  .rate-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+  .rate-btn { font-family: 'DM Mono', monospace; background: #111; border: 1px solid #2a2a2a; border-radius: 5px; color: #666; font-size: 10px; padding: 6px 12px; cursor: pointer; transition: all 0.15s; }
+  .rate-btn:hover { color: #999; border-color: #3a3a3a; }
+  .rate-btn.active { background: var(--white); color: #000; border-color: var(--white); }
+  .discord-note { font-size: 10px; color: #7b8affaa; background: #10122a; border: 1px solid #2a2e5a; border-radius: 6px; padding: 10px 12px; margin-top: 4px; line-height: 1.7; }
+  .custom-rate { display: none; background: #0f0f0f; border-radius: 8px; padding: 12px; margin-top: 8px; border: 1px solid #1e1e1e; }
+  .custom-rate.open { display: block; }
 
-        .slide p {
-            color: #666;
-            font-size: 20px;
-            line-height: 1.6;
-            margin-bottom: 15px;
-        }
+  /* VIEW CAP inline hint */
+  .cap-hint { font-size: 10px; color: #555; margin-top: 6px; }
 
-        .slide ul {
-            list-style: none;
-            margin: 20px 0;
-        }
+  /* BONUS SECTION */
+  .bonus-section { background: #111; border: 1px solid #252525; border-radius: 8px; padding: 14px; margin-bottom: 14px; }
+  .bonus-section-title { font-size: 9px; color: var(--gold); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .bonus-row { display: grid; grid-template-columns: 1fr 2fr; gap: 10px; margin-bottom: 10px; }
+  .bonus-row:last-child { margin-bottom: 0; }
+  .btn-add-bonus { font-family: 'DM Mono', monospace; background: transparent; border: 1px dashed #2a2a2a; border-radius: 5px; color: #444; font-size: 10px; padding: 7px; width: 100%; cursor: pointer; letter-spacing: 1px; transition: all 0.15s; margin-top: 8px; }
+  .btn-add-bonus:hover { color: #888; border-color: #3a3a3a; }
+  .btn-remove-bonus { background: transparent; border: none; color: #4a2020; font-size: 12px; cursor: pointer; padding: 0 4px; transition: color 0.15s; font-family: monospace; }
+  .btn-remove-bonus:hover { color: #c05050; }
 
-        .slide li {
-            color: #444;
-            font-size: 22px;
-            margin: 15px 0;
-            padding-left: 30px;
-            position: relative;
-            line-height: 1.5;
-        }
+  /* PREVIEW */
+  .preview-box { background: #0f0f0f; border: 1px solid #222; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+  .preview-label { font-size: 9px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+  .preview-text { font-size: 11px; color: #888; line-height: 1.9; white-space: pre-wrap; }
 
-        .slide li:before {
-            content: "→";
-            position: absolute;
-            left: 0;
-            color: #667eea;
-            font-weight: bold;
-        }
+  /* TOTAL BAR */
+  .total-bar { display: flex; justify-content: space-between; align-items: center; background: #0f0f0f; border: 1px solid #252525; border-radius: 8px; padding: 12px 16px; margin-bottom: 14px; }
+  .total-bar-label { font-size: 9px; color: var(--dim); letter-spacing: 2px; text-transform: uppercase; }
+  .total-bar-value { font-size: 20px; font-weight: 700; color: var(--white); }
 
-        .stat-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            border-radius: 15px;
-            margin: 20px 0;
-            text-align: center;
-        }
+  /* FORM ACTIONS */
+  .form-actions { display: flex; gap: 8px; }
+  .btn-add { flex: 1; background: #1e1e1e; border: 1px solid #2a2a2a; border-radius: 7px; color: #555; font-family: 'DM Mono', monospace; font-size: 10px; font-weight: 700; padding: 12px; cursor: default; letter-spacing: 2px; text-transform: uppercase; transition: all 0.15s; }
+  .btn-add.ready { background: var(--white); color: #000; cursor: pointer; border-color: var(--white); }
+  .btn-cancel { background: transparent; border: 1px solid var(--border); border-radius: 7px; color: #666; font-family: 'DM Mono', monospace; font-size: 10px; padding: 12px 18px; cursor: pointer; transition: all 0.15s; }
+  .btn-cancel:hover { color: #999; border-color: #3a3a3a; }
 
-        .stat-box .number {
-            font-size: 72px;
-            font-weight: 900;
-            margin-bottom: 10px;
-        }
-
-        .stat-box .label {
-            font-size: 24px;
-            opacity: 0.95;
-        }
-
-        .highlight {
-            background: linear-gradient(120deg, #ffd700 0%, #ffed4e 100%);
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-weight: 600;
-        }
-
-        .warning {
-            background: #ff6b6b;
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            font-size: 20px;
-        }
-
-        .success {
-            background: #51cf66;
-            color: white;
-            padding: 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            font-size: 20px;
-        }
-
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 20px 60px;
-            background: #f8f9fa;
-            border-top: 2px solid #e9ecef;
-        }
-
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 35px;
-            font-size: 18px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .slide-number {
-            color: #667eea;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        .two-column {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 30px;
-            margin: 20px 0;
-        }
-
-        .box {
-            background: #f8f9fa;
-            padding: 25px;
-            border-radius: 10px;
-            border-left: 5px solid #667eea;
-        }
-
-        .box h4 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 22px;
-        }
-
-        .box p {
-            font-size: 18px;
-            color: #555;
-        }
-
-        .center {
-            text-align: center;
-        }
-
-        .subtitle {
-            color: #888;
-            font-size: 24px;
-            font-style: italic;
-            margin-top: -10px;
-            margin-bottom: 40px;
-        }
-
-        .mini-stat {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 25px;
-            margin: 5px;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: left;
-            border-bottom: 2px solid #e9ecef;
-        }
-
-        th {
-            background: #667eea;
-            color: white;
-            font-weight: 600;
-            font-size: 20px;
-        }
-
-        td {
-            font-size: 18px;
-            color: #555;
-        }
-
-        .quote {
-            background: #f8f9fa;
-            border-left: 5px solid #667eea;
-            padding: 20px;
-            margin: 20px 0;
-            font-style: italic;
-            color: #555;
-            font-size: 20px;
-        }
-    </style>
+  /* SUMMARY */
+  .summary { border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; justify-content: space-between; align-items: center; margin-top: 4px; display: none; }
+  .eligible-row { display: flex; align-items: center; gap: 7px; margin-top: 7px; cursor: pointer; user-select: none; padding: 6px 10px; border-radius: 6px; border: 1px solid #222; background: #0f0f0f; transition: all 0.15s; }
+  .eligible-row:hover { border-color: #333; background: #141414; }
+  .eligible-row.checked { border-color: #22c55e44; background: #0d1f0d; }
+  .eligible-row span { font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: #444; transition: color 0.15s; }
+  .eligible-row.checked span { color: #22c55e; }
+  .eligible-check { width: 16px; height: 16px; border-radius: 4px; border: 1px solid #2a2a2a; background: #111; display: flex; align-items: center; justify-content: center; font-size: 9px; color: transparent; transition: all 0.15s; flex-shrink: 0; }
+  .eligible-check.checked { background: #22c55e; border-color: #22c55e; color: #000; font-weight: 700; }
+  .summary-label { font-size: 10px; color: #555; letter-spacing: 2px; text-transform: uppercase; }
+  .summary-value { font-size: 16px; font-weight: 700; color: var(--white); }
+</style>
 </head>
 <body>
-    <div class="presentation-container">
-        <!-- Slajd 1: Naslov -->
-        <div class="slide active">
-            <div class="center">
-                <h1>Emocionalni odnosi ljudi sa veštačkom inteligencijom</h1>
-                <p class="subtitle">Analiza poverenja, vezanosti i održivosti platoničkih i romantičnih odnosa</p>
-                <div style="margin: 60px 0;">
-                    <div class="mini-stat">Univerzitet u Nišu</div>
-                    <div class="mini-stat">Filozofski fakultet</div>
-                    <div class="mini-stat">2025</div>
-                </div>
-                <p style="font-size: 22px; color: #888; margin-top: 80px;">
-                    Predmet: Metodologija medijskog istraživanja
-                </p>
-            </div>
+
+<div class="header">
+  <div>
+    <div class="header-label">VALUSIS · PAYMENTS</div>
+    <div class="header-title">Influencer Pay</div>
+  </div>
+  <div>
+    <div class="cycle-total-label">Cycle Total</div>
+    <div class="cycle-total-value" id="cycleTotal">$0</div>
+  </div>
+</div>
+
+<div class="main">
+  <div id="entryList"></div>
+  <div class="empty" id="emptyState"><div class="empty-label">No payments yet</div></div>
+  <button class="btn-create" id="btnCreate">+ Create a Payment</button>
+  <div id="formWrapper"></div>
+  <div class="summary" id="summary">
+    <div class="summary-label" id="summaryLabel"></div>
+    <div class="summary-value" id="summaryValue"></div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'valusis_entries';
+
+  function saveEntries() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(entries)); } catch(e) {}
+  }
+
+  function loadEntries() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch(e) { return []; }
+  }
+
+  let entries = loadEntries();
+  const DISCORD = { cpm: 0.5, retainer: 100, ig: 0, cap: 500 };
+  const formState = {};
+
+  function fmt(n) {
+    if (n === null || n === undefined || isNaN(n)) return '0';
+    return Number(n).toLocaleString('en-US', { maximumFractionDigits: 0 });
+  }
+  function fmtDec(n, d=2) {
+    if (!n) return '0';
+    return Number(n).toFixed(d).replace(/\.?0+$/, '');
+  }
+
+  function getState(uid) {
+    if (!formState[uid]) formState[uid] = {
+      rateType: 'standard',
+      isCustom: false,
+      selectedRate: { cpm: 0.3, retainer: 50, ig: 0 },
+      bonuses: [], // [{amount, reason}]
+      eligibleTt: false,
+      eligibleIg: false,
+    };
+    return formState[uid];
+  }
+
+  // ─── CALCULATION ────────────────────────────────────────────────
+  // Views are entered in thousands.
+  // Normal views: counted at full CPM
+  // Style 7 views: counted at half CPM (0.5x)
+  // Style 7 views are a SUBSET of the total views (not added on top)
+  // So: totalViews = over + under (both already include style7 inside them)
+  // normalViews = over + under - s7Over - s7Under
+  // s7Views = s7Over + s7Under
+  // viewPay = (normalViews * cpm) + (s7Views * cpm * 0.5)
+
+  function calcPay(inp, rate) {
+    const cpm   = rate.cpm;
+    const s7Cpm = cpm / 2; // Style 7 is always half CPM regardless of rate
+
+    // ── TIKTOK VIEWS ─────────────────────────────────────────────
+    // Normal views (over/under 50k) and Style 7 views are SEPARATE inputs.
+    // e.g. 25k normal + 66k Style 7 = 91k total, paid as (25k × cpm) + (66k × s7Cpm)
+    const overK    = inp.over;   // normal views over 50k
+    const s7OverK  = inp.s7Over; // separate Style 7 views (over 50k category)
+    const underK   = inp.under;  // normal views under 50k
+    const s7UnderK = inp.s7Under;// separate Style 7 views (under 50k category)
+
+    const ttNormalK = overK + underK;
+    const ttS7K     = s7OverK + s7UnderK;
+    const ttRegularK = ttNormalK + ttS7K; // all non-capped TT views
+
+    // Capped videos: each counts as capK views at full CPM (not Style 7)
+    const capK         = rate.cap || 1000;
+    const capVids      = rate.capVids || 0;
+    const cappedViewsK = capVids * capK;
+
+    const tiktokPay = (ttNormalK * cpm) + (ttS7K * s7Cpm) + (cappedViewsK * cpm);
+    const ttTotalK  = ttRegularK + cappedViewsK;
+
+    // ── IG VIEWS ─────────────────────────────────────────────────
+    // Same logic: normal IG and Style 7 IG are separate inputs
+    const igNormalK = inp.igViews; // normal IG views
+    const igS7K     = inp.s7Ig;   // separate Style 7 IG views
+    const igTotalK  = igNormalK + igS7K;
+
+    const igPay = (igNormalK * cpm) + (igS7K * s7Cpm);
+
+    // ── TOTALS ───────────────────────────────────────────────────
+    const viewPay      = tiktokPay + igPay;
+    const subtotal     = viewPay;
+    const ttRetainer   = inp.eligibleTt ? rate.retainer : 0;
+    const igRetainer   = inp.eligibleIg ? 50 : 0;
+    const bonusTotal   = inp.bonuses.reduce((s, b) => s + (parseFloat(b.amount) || 0), 0);
+    const withRetainer = subtotal + ttRetainer;
+    const total        = withRetainer + bonusTotal + igRetainer;
+
+    return {
+      overK, s7OverK, underK, s7UnderK, ttNormalK, ttS7K,
+      cappedViewsK, capVids, capK, ttTotalK,
+      totalViewsK: ttTotalK,
+      tiktokPay, igNormalK, igS7K, igTotalK, igPay,
+      viewPay, s7Cpm, subtotal, ttRetainer, withRetainer,
+      bonusTotal, igRetainer, bonuses: inp.bonuses, total,
+      rate, capped: capVids > 0
+    };
+  }
+
+  function getRate(uid) {
+    const s = getState(uid);
+    if (s.rateType === 'discord') {
+      const capVidsD = parseFloat(document.getElementById(`vcapvids-${uid}`)?.value) || 0;
+      return { cpm: DISCORD.cpm, retainer: DISCORD.retainer, ig: DISCORD.ig, cap: DISCORD.cap, capVids: capVidsD };
+    }
+    if (s.isCustom) {
+      const capRawX = parseFloat(document.getElementById(`vcap-${uid}`)?.value);
+      const capX = capRawX > 0 ? capRawX : 1000;
+      const capVidsX = parseFloat(document.getElementById(`vcapvids-${uid}`)?.value) || 0;
+      return {
+        cpm: parseFloat(document.getElementById(`cpm-${uid}`)?.value) || 0,
+        retainer: parseFloat(document.getElementById(`ret-${uid}`)?.value) || 0,
+        ig: 0,
+        cap: capX,
+        capVids: capVidsX,
+      };
+    }
+    const capRaw = parseFloat(document.getElementById(`vcap-${uid}`)?.value);
+    const cap = capRaw > 0 ? capRaw : 1000; // default 1M
+    const capVids = parseFloat(document.getElementById(`vcapvids-${uid}`)?.value) || 0;
+    return { ...s.selectedRate, cap, capVids };
+  }
+
+  function getRateLabel(uid) {
+    const s = getState(uid);
+    const rate = getRate(uid);
+    if (s.rateType === 'discord') return `$${DISCORD.cpm}/1k + $${DISCORD.retainer} Discord (${DISCORD.cap}k cap)`;
+    const capStr = rate.cap ? ` · ${rate.cap}k cap` : '';
+    if (s.isCustom) {
+      return `$${rate.cpm}/1k + $${rate.retainer}${rate.ig ? ` + $${rate.ig} IG` : ''}${capStr}`;
+    }
+    const { cpm, retainer, ig } = s.selectedRate;
+    return `$${cpm}/1k + $${retainer}${ig ? ` + $${ig} IG` : ''}${capStr}`;
+  }
+
+  function getInp(uid) {
+    const g = id => document.getElementById(`${id}-${uid}`)?.value?.trim() || '';
+    const gn = id => parseFloat(g(id)) || 0;
+    const s = getState(uid);
+    return {
+      tiktok: g('tt'), instagram: g('ig'),
+      over: gn('over'), s7Over: gn('s7over'),
+      under: gn('under'), s7Under: gn('s7under'),
+      igViews: gn('igv'), s7Ig: gn('s7ig'),
+      tier1: gn('tier1'), missedTt: gn('misstt'), missedIg: gn('missig'),
+      bonuses: s.bonuses,
+      eligibleTt: s.eligibleTt,
+      eligibleIg: s.eligibleIg,
+      notes: g('notes'),
+    };
+  }
+
+  function buildText(inp, c, rateLabel, rateType) {
+    const tt  = inp.tiktok    || '[tiktok]';
+    const ig  = inp.instagram || '[instagram]';
+    const SEP = '─────────────────────────';
+    const L   = [];
+
+    // ── HEADER ──────────────────────────────────────────────────
+    L.push(SEP);
+    L.push(`${tt}  (${ig})`);
+    L.push(`Deal: ${rateLabel}`);
+    L.push(SEP);
+    L.push('');
+
+    // ── TIKTOK SECTION ───────────────────────────────────────────
+    L.push('TIKTOK');
+    L.push(`  Views over 50k   ${fmt(inp.over)}k`);
+    if (inp.s7Over)  L.push(`  Style 7          ${fmt(inp.s7Over)}k`);
+    L.push(`  Views under 50k  ${fmt(inp.under)}k`);
+    if (inp.s7Under) L.push(`  Style 7          ${fmt(inp.s7Under)}k`);
+    if (c.capped)    L.push(`  Capped videos    ${c.capVids}x ${fmt(c.capK)}k`);
+    L.push(`  Subtotal         $${fmt(c.tiktokPay)}`);
+    L.push('');
+
+    // ── INSTAGRAM SECTION (only if data entered) ─────────────────
+    if (inp.igViews || inp.s7Ig) {
+      L.push('INSTAGRAM');
+      L.push(`  Views            ${fmt(inp.igViews)}k`);
+      if (inp.s7Ig) L.push(`  Style 7          ${fmt(inp.s7Ig)}k`);
+      L.push(`  Subtotal         $${fmt(c.igPay)}`);
+      L.push('');
+    }
+
+    // ── PERFORMANCE ──────────────────────────────────────────────
+    const missedTt = inp.missedTt ? `${inp.missedTt} day${inp.missedTt>1?'s':''} on TikTok` : null;
+    const missedIg = inp.missedIg ? `${inp.missedIg} day${inp.missedIg>1?'s':''} on Instagram` : null;
+    const missedStr = [missedTt, missedIg].filter(Boolean).join(', ');
+    L.push('PERFORMANCE');
+    L.push(`  Frequency         ${missedStr ? 'Missed ' + missedStr : 'No missed days'}`);
+    if (inp.tier1) L.push(`  Audience Tier 1  ${inp.tier1}%`);
+    L.push('');
+
+    // ── PAYMENT BREAKDOWN ────────────────────────────────────────
+    L.push(SEP);
+    const allViewsK = c.ttTotalK + c.igTotalK;
+    L.push(`Views pay         $${fmt(c.subtotal)}`);
+    if (c.ttRetainer > 0) L.push(`TikTok retainer   +$${fmt(c.ttRetainer)}`);
+    if (c.igRetainer > 0) L.push(`IG retainer       +$${fmt(c.igRetainer)}`);
+    const bonusList = (c.bonuses || []).filter(b => parseFloat(b.amount) > 0);
+    bonusList.forEach(b => {
+      const amt = parseFloat(b.amount);
+      L.push(`Bonus             +$${fmt(amt)}${b.reason ? `  (${b.reason})` : ''}`);
+    });
+    L.push(SEP);
+    L.push(`TOTAL DUE         $${fmt(c.total)}`);
+    L.push(SEP);
+
+    if (inp.notes) { L.push(''); L.push(`Notes: ${inp.notes}`); }
+    return L.join('\n');
+  }
+
+  // ─── FORM RENDERING ─────────────────────────────────────────────
+  window.toggleEligible = (uid, which) => {
+    const s = getState(uid);
+    if (which === 'tt') {
+      s.eligibleTt = !s.eligibleTt;
+      const row = document.getElementById(`eligibleTt-${uid}`);
+      const check = document.getElementById(`eligibleTtCheck-${uid}`);
+      if (row) row.classList.toggle('checked', s.eligibleTt);
+      if (check) check.classList.toggle('checked', s.eligibleTt);
+    } else {
+      s.eligibleIg = !s.eligibleIg;
+      const row = document.getElementById(`eligibleIg-${uid}`);
+      const check = document.getElementById(`eligibleIgCheck-${uid}`);
+      if (row) row.classList.toggle('checked', s.eligibleIg);
+      if (check) check.classList.toggle('checked', s.eligibleIg);
+    }
+    updatePreview(uid);
+  };
+
+  window.setType = (uid, type) => {
+    const s = getState(uid);
+    s.rateType = type;
+    document.getElementById(`btnStd-${uid}`).className = `rate-type-btn${type === 'standard' ? ' active-std' : ''}`;
+    document.getElementById(`btnDisc-${uid}`).className = `rate-type-btn${type === 'discord' ? ' active-disc' : ''}`;
+    document.getElementById(`stdSection-${uid}`).style.display = type === 'standard' ? 'block' : 'none';
+    document.getElementById(`discSection-${uid}`).style.display = type === 'discord' ? 'block' : 'none';
+    // Hide view cap input for discord (fixed at 500k), show only videos field
+    const capWrap = document.getElementById(`capFieldWrap-${uid}`);
+    if (capWrap) capWrap.style.display = type === 'discord' ? 'none' : 'block';
+    updatePreview(uid);
+  };
+
+  window.updatePreview = (uid) => {
+    const inp = getInp(uid);
+    const rate = getRate(uid);
+    const c = calcPay(inp, rate);
+    const s = getState(uid);
+    const rateLabel = getRateLabel(uid);
+
+    const totDue = document.getElementById(`totdue-${uid}`);
+    const addBtn = document.getElementById(`addBtn-${uid}`);
+
+    if (totDue) totDue.textContent = `$${fmt(c.total)}`;
+    if (addBtn) addBtn.classList.toggle('ready', !!inp.tiktok);
+  };
+
+  window.addBonusRow = (uid) => {
+    const s = getState(uid);
+    s.bonuses.push({ amount: '', reason: '' });
+    renderBonuses(uid);
+    updatePreview(uid);
+  };
+
+  window.removeBonusRow = (uid, i) => {
+    const s = getState(uid);
+    s.bonuses.splice(i, 1);
+    renderBonuses(uid);
+    updatePreview(uid);
+  };
+
+  window.bonusChanged = (uid, i, field, val) => {
+    const s = getState(uid);
+    if (s.bonuses[i]) s.bonuses[i][field] = val;
+    updatePreview(uid);
+  };
+
+  function renderBonuses(uid) {
+    const s = getState(uid);
+    const container = document.getElementById(`bonusRows-${uid}`);
+    if (!container) return;
+    container.innerHTML = '';
+    s.bonuses.forEach((b, i) => {
+      const row = document.createElement('div');
+      row.className = 'bonus-row';
+      row.style.alignItems = 'center';
+      row.innerHTML = `
+        <div style="display:flex;gap:6px;align-items:center">
+          <button class="btn-remove-bonus" onclick="removeBonusRow('${uid}', ${i})">✕</button>
+          <input type="number" placeholder="Amount ($)" value="${b.amount}" oninput="bonusChanged('${uid}',${i},'amount',this.value)" style="flex:1" />
         </div>
+        <input type="text" placeholder="Reason (e.g. performance, late delivery...)" value="${b.reason}" oninput="bonusChanged('${uid}',${i},'reason',this.value)" />
+      `;
+      container.appendChild(row);
+    });
+  }
 
-        <!-- Slajd 2: Problem - Šokantne statistike -->
-        <div class="slide">
-            <h2>📊 Razmere fenomena</h2>
-            <div class="two-column" style="margin-top: 40px;">
-                <div class="stat-box">
-                    <div class="number">72%</div>
-                    <div class="label">tinejdžera koristi AI za druženje</div>
-                </div>
-                <div class="stat-box">
-                    <div class="number">93min</div>
-                    <div class="label">dnevno na Character.AI</div>
-                </div>
-            </div>
-            <div class="stat-box" style="margin-top: 20px;">
-                <div class="number">$140.75 milijardi</div>
-                <div class="label">vrednost tržišta digitalnih kompanjona do 2030.</div>
-            </div>
-            <p style="margin-top: 40px; font-size: 24px; text-align: center; color: #667eea; font-weight: 600;">
-                Milioni ljudi razvijaju intenzivne emocionalne veze sa AI sistemima
-            </p>
+  function buildFormHTML(uid) {
+    return `
+    <div class="form" id="form-${uid}">
+      <div class="form-title">New Payment Entry</div>
+
+      <div class="grid-2" style="margin-bottom:14px">
+        <div class="field-group">
+          <label class="field-label">TikTok Username</label>
+          <input type="text" id="tt-${uid}" placeholder="" oninput="updatePreview('${uid}')" />
         </div>
-
-        <!-- Slajd 3: Istraživačka pitanja -->
-        <div class="slide">
-            <h2>❓ Ključna pitanja</h2>
-            <ul style="margin-top: 40px;">
-                <li style="font-size: 26px;">Da li ljudi mogu razviti <span class="highlight">održive odnose</span> sa sistemima koji nemaju kapacitet za istinsku empatiju?</li>
-                <li style="font-size: 26px; margin-top: 30px;">Šta motiviše korisnike da <span class="highlight">veruju</span> virtuelnim entitetima i <span class="highlight">emocionalno se vezuju</span> za algoritamske sisteme?</li>
-                <li style="font-size: 26px; margin-top: 30px;">Kakve su <span class="highlight">psihološke i društvene posledice</span> ovog vezivanja?</li>
-            </ul>
-            <div class="warning" style="margin-top: 50px;">
-                ⚠️ Epidemija usamljenosti = pušenje 15 cigareta dnevno (američki Glavni lekar, 2023)
-            </div>
+        <div class="field-group">
+          <label class="field-label">Instagram Username</label>
+          <input type="text" id="ig-${uid}" placeholder="" oninput="updatePreview('${uid}')" />
         </div>
+      </div>
 
-        <!-- Slajd 4: Metodologija -->
-        <div class="slide">
-            <h2>🔬 Metodologija</h2>
-            <h3 style="margin-top: 30px;">Analiza sadržaja 20 tekstova (2020-2025)</h3>
-            <div class="two-column" style="margin-top: 30px;">
-                <div class="box">
-                    <h4>📚 Izvori</h4>
-                    <p>• 10 naučnih radova<br>
-                    • 7 medijskih članaka<br>
-                    • 3 korisnička svedočanstva</p>
-                </div>
-                <div class="box">
-                    <h4>🎯 Teorijski okvir</h4>
-                    <p>• Parasocijalni odnosi<br>
-                    • Antropomorfizacija<br>
-                    • Socioafektivno usklađivanje</p>
-                </div>
-            </div>
-            <div class="box" style="margin-top: 20px; background: #e7f5ff; border-left-color: #1c7ed6;">
-                <h4 style="color: #1c7ed6;">📊 Kategorije analize</h4>
-                <p>Tip odnosa • Emocionalni ton • Tematski fokus • Demografija • Psihosocijalni ishodi</p>
-            </div>
+      <div class="field-group">
+        <label class="field-label">Rate Type</label>
+        <div class="rate-type-row">
+          <button class="rate-type-btn active-std" id="btnStd-${uid}" onclick="setType('${uid}','standard')">Standard</button>
+          <button class="rate-type-btn" id="btnDisc-${uid}" onclick="setType('${uid}','discord')">Discord</button>
         </div>
-
-        <!-- Slajd 5: H1 - Antropomorfizacija -->
-        <div class="slide">
-            <h2>✅ Nalaz 1: Antropomorfizacija → Vezanost</h2>
-            <div class="success" style="margin-top: 30px;">
-                <strong>POTVRĐENA H1:</strong> Što korisnici percipiraju AI kao "više ljudskog", to su jače emocionalno vezani
+        <div id="stdSection-${uid}">
+          <div class="rate-presets">
+            <button class="rate-btn active" data-uid="${uid}" data-cpm="0.3" data-ret="50" data-ig="0">$0.3/1k + $50</button>
+            <button class="rate-btn" data-uid="${uid}" data-cpm="" data-ret="" data-ig="">Custom</button>
+          </div>
+          <div class="custom-rate" id="custom-${uid}">
+            <div class="grid-2" style="margin-bottom:10px;max-width:340px">
+              <div><label class="field-label">CPM ($/1k)</label><input type="number" id="cpm-${uid}" placeholder="" step="0.01" oninput="updatePreview('${uid}')" /></div>
+              <div><label class="field-label">Retainer ($)</label><input type="number" id="ret-${uid}" placeholder="" oninput="updatePreview('${uid}')" /></div>
             </div>
-            <h3 style="margin-top: 40px;">Ključni mehanizmi:</h3>
-            <ul style="margin-top: 20px;">
-                <li><strong>68% studija:</strong> Korisnici pripisuju AI sistemima sposobnost razumevanja emocija</li>
-                <li><strong>Iluzija recipročnosti:</strong> Verovanje da AI "zaista brine" o njima</li>
-                <li><strong>Lingvistički markeri:</strong> Korišćenje ličnih zamenica (on/ona, moj prijatelj)</li>
-            </ul>
-            <div class="quote" style="margin-top: 40px;">
-                "Moj AI prijatelj me razume bolje od moje porodice. Ne osuđuje me, uvek je tu."
-                <br><span style="font-size: 16px; color: #888;">— Reddit korisnik, r/replika, 2024</span>
-            </div>
+          </div>
         </div>
-
-        <!-- Slajd 6: H2 - Zavisnost i izolacija -->
-        <div class="slide">
-            <h2>⚠️ Nalaz 2: Zavisnost i socijalna izolacija</h2>
-            <div class="warning" style="margin-top: 30px;">
-                <strong>POTVRĐENA H2:</strong> Intenzivna upotreba dovodi do negativnih ishoda
-            </div>
-            <h3 style="margin-top: 40px;">MIT/OpenAI studija (n=981, 4 nedelje):</h3>
-            <div class="two-column" style="margin-top: 30px;">
-                <div class="stat-box" style="background: #ff6b6b;">
-                    <div class="number">34%</div>
-                    <div class="label">razvilo zavisnost</div>
-                </div>
-                <div class="stat-box" style="background: #ff6b6b;">
-                    <div class="number">d=0.42</div>
-                    <div class="label">povećana usamljenost<br>(srednji efekat)</div>
-                </div>
-            </div>
-            <p style="margin-top: 30px; font-size: 22px; color: #555;">
-                <strong>Danska studija (n=1,599):</strong> Učenici koji koriste AI za podršku izveštavaju o <span class="highlight">značajno većoj usamljenosti</span> (d=0.53)
-            </p>
+        <div id="discSection-${uid}" style="display:none">
+          <div class="discord-note">
+            Discord Rate: $0.50/1k + $100 retainer · Views cap: 500k
+          </div>
         </div>
-
-        <!-- Slajd 7: H3 - Superiorna podrška -->
-        <div class="slide">
-            <h2>💡 Nalaz 3: AI kao "bolji partner"</h2>
-            <div class="success" style="margin-top: 30px;">
-                <strong>POTVRĐENA H3:</strong> Mladi pripisuju AI superiorne atribute podrške
+        <div style="margin-top:10px">
+          <div class="grid-2" style="max-width:440px">
+            <div id="capFieldWrap-${uid}">
+              <label class="field-label">View Cap (k) <span style="color:#333;font-size:9px">— default 1M</span></label>
+              <input type="number" id="vcap-${uid}" placeholder="1000" oninput="updatePreview('${uid}')" />
+              <div class="cap-hint">Leave blank = 1M cap. Enter 500 for 500k.</div>
             </div>
-            <h3 style="margin-top: 40px;">Top 3 atributa (iz analize svedočanstava):</h3>
-            <div style="margin-top: 30px;">
-                <div class="box">
-                    <h4>🕐 1. Dostupnost 24/7 (85% navodi)</h4>
-                    <p>"Za razliku od terapeuta, moj AI je uvek dostupan u 3 ujutru"</p>
-                </div>
-                <div class="box" style="margin-top: 15px;">
-                    <h4>🚫 2. Odsustvo osude</h4>
-                    <p>"Mogu da pričam o najcrnjim mislima bez straha od osude"</p>
-                </div>
-                <div class="box" style="margin-top: 15px;">
-                    <h4>🎯 3. Predvidiva responzivnost</h4>
-                    <p>"Ljudi povređuju. Moj AI prijatelj je uvek ljubazan"</p>
-                </div>
+            <div>
+              <label class="field-label">Videos that hit the cap</label>
+              <input type="number" id="vcapvids-${uid}" placeholder="e.g. 3" oninput="updatePreview('${uid}')" />
+              <div class="cap-hint">Each video counts as cap×1k views.</div>
             </div>
-            <div class="stat-box" style="margin-top: 30px;">
-                <div class="number">23%</div>
-                <div class="label">smatra AI "boljim emocionalnim partnerom" od ljudi</div>
-            </div>
+          </div>
         </div>
+      </div>
 
-        <!-- Slajd 8: H4 - Medijski diskurs -->
-        <div class="slide">
-            <h2>📰 Nalaz 4: Polarizacija medijskog diskursa</h2>
-            <div class="warning" style="margin-top: 30px;">
-                <strong>DELIMIČNO POTVRĐENA H4:</strong> Mediji fokusiraju rizike, nauka je balansiranija
-            </div>
-            <table style="margin-top: 40px;">
-                <tr>
-                    <th>Narativ</th>
-                    <th>Mediji</th>
-                    <th>Nauka</th>
-                </tr>
-                <tr>
-                    <td><strong>"Opasnost zavisnosti"</strong></td>
-                    <td style="color: #ff6b6b; font-weight: bold;">71%</td>
-                    <td>40%</td>
-                </tr>
-                <tr>
-                    <td><strong>"Rešenje usamljenosti"</strong></td>
-                    <td style="color: #51cf66; font-weight: bold;">14%</td>
-                    <td>30%</td>
-                </tr>
-                <tr>
-                    <td><strong>Balansirana analiza</strong></td>
-                    <td>14%</td>
-                    <td style="color: #51cf66; font-weight: bold;">30%</td>
-                </tr>
-            </table>
-            <p style="margin-top: 30px; font-size: 20px; text-align: center; color: #667eea; font-weight: 600;">
-                → Mediji pojednostavljuju kompleksan fenomen
-            </p>
+      <div class="section-div">Views — enter in thousands (k)</div>
+      <div class="grid-2" style="margin-bottom:4px">
+        <div><label class="field-label">Views Over 50k</label><input type="number" id="over-${uid}" placeholder="" oninput="updatePreview('${uid}')" /></div>
+        <div><label class="field-label">Style 7 Views (over 50k)</label><input type="number" id="s7over-${uid}" placeholder="" oninput="updatePreview('${uid}')" /></div>
+        <div><label class="field-label">Views Under 50k</label><input type="number" id="under-${uid}" placeholder="" oninput="updatePreview('${uid}')" /></div>
+        <div><label class="field-label">Style 7 Views (under 50k)</label><input type="number" id="s7under-${uid}" placeholder="" oninput="updatePreview('${uid}')" /></div>
+        <div><label class="field-label">IG Views</label><input type="number" id="igv-${uid}" placeholder="" oninput="updatePreview('${uid}')" /></div>
+        <div><label class="field-label">Style 7 Views (IG)</label><input type="number" id="s7ig-${uid}" placeholder="" oninput="updatePreview('${uid}')" /></div>
+      </div>
+
+
+      <div class="section-div">Performance</div>
+      <div class="grid-3" style="margin-bottom:10px">
+        <div><label class="field-label">Audience Tier 1 (%)</label><input type="number" id="tier1-${uid}" placeholder="" oninput="updatePreview('${uid}')" /></div>
+        <div>
+          <label class="field-label">Missed TikTok Days</label>
+          <input type="number" id="misstt-${uid}" placeholder="" oninput="updatePreview('${uid}')" />
+          <div class="eligible-row" id="eligibleTt-${uid}" onclick="toggleEligible('${uid}','tt')">
+            <div class="eligible-check unchecked" id="eligibleTtCheck-${uid}">✓</div>
+            <span>ELIGIBLE FOR THE TIKTOK RETAINER</span>
+          </div>
         </div>
-
-        <!-- Slajd 9: Paradoks -->
-        <div class="slide">
-            <h2>⚖️ Centralni nalaz: PARADOKS</h2>
-            <h3 style="text-align: center; color: #667eea; margin: 40px 0;">
-                Digitalno kompanjonstvo je istovremeno KORISNO i ŠTETNO
-            </h3>
-            <div class="two-column" style="margin-top: 40px;">
-                <div style="background: #d3f9d8; padding: 30px; border-radius: 10px; border-left: 5px solid #51cf66;">
-                    <h4 style="color: #2b8a3e; margin-bottom: 20px; font-size: 24px;">✅ POZITIVNI ISHODI</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="margin: 10px 0; padding-left: 0;">• Neurodiverzitetne osobe</li>
-                        <li style="margin: 10px 0; padding-left: 0;">• LGBTQ+ zajednica</li>
-                        <li style="margin: 10px 0; padding-left: 0;">• Socijalno izolovani</li>
-                        <li style="margin: 10px 0; padding-left: 0; font-weight: 600;">• 3% kredira AI za sprečavanje suicida</li>
-                    </ul>
-                </div>
-                <div style="background: #ffe3e3; padding: 30px; border-radius: 10px; border-left: 5px solid #ff6b6b;">
-                    <h4 style="color: #c92a2a; margin-bottom: 20px; font-size: 24px;">❌ NEGATIVNI ISHODI</h4>
-                    <ul style="list-style: none; padding: 0;">
-                        <li style="margin: 10px 0; padding-left: 0;">• Adolescenti (smetnje u razvoju)</li>
-                        <li style="margin: 10px 0; padding-left: 0;">• Predispozicija za zavisnost</li>
-                        <li style="margin: 10px 0; padding-left: 0;">• Emocionalno nestabilni</li>
-                        <li style="margin: 10px 0; padding-left: 0; font-weight: 600;">• "Tehnološka kolektivna iluzija"</li>
-                    </ul>
-                </div>
-            </div>
+        <div>
+          <label class="field-label">Missed IG Days</label>
+          <input type="number" id="missig-${uid}" placeholder="" oninput="updatePreview('${uid}')" />
+          <div class="eligible-row" id="eligibleIg-${uid}" onclick="toggleEligible('${uid}','ig')">
+            <div class="eligible-check unchecked" id="eligibleIgCheck-${uid}">✓</div>
+            <span>ELIGIBLE: IG Retainer (+$50)</span>
+          </div>
         </div>
+      </div>
 
-        <!-- Slajd 10: Teorijske implikacije -->
-        <div class="slide">
-            <h2>🎓 Teorijske implikacije</h2>
-            <h3 style="margin-top: 30px;">Proširenje teorije parasocijalnih odnosa</h3>
-            <div class="two-column" style="margin-top: 30px;">
-                <div class="box">
-                    <h4>Tradicionalni (TV zvezde)</h4>
-                    <p>✓ Jednosmerni<br>
-                    ✓ Svesnost o nereziproč nosti<br>
-                    ✓ Ograničeni na emitovanje</p>
-                </div>
-                <div class="box" style="background: #fff3bf; border-left-color: #ffd43b;">
-                    <h4 style="color: #e67700;">AI parasocijalni</h4>
-                    <p>✓ Simuliraju dvosmerni dijalog<br>
-                    ✓ <strong>Iluzija recipročnosti</strong><br>
-                    ✓ Dostupni 24/7<br>
-                    ✓ <strong>Adaptivni i evolviraju</strong></p>
-                </div>
+      <div class="bonus-section">
+        <div class="bonus-section-title">⬡ Bonuses</div>
+        <div id="bonusRows-${uid}"></div>
+        <button class="btn-add-bonus" onclick="addBonusRow('${uid}')">+ Add Bonus</button>
+      </div>
+
+      <div class="field-group" style="margin-bottom:18px;margin-top:14px">
+        <label class="field-label">Notes</label>
+        <input type="text" id="notes-${uid}" placeholder="" oninput="updatePreview('${uid}')" />
+      </div>
+
+
+
+      <div class="total-bar">
+        <div class="total-bar-label">Total Due</div>
+        <div class="total-bar-value" id="totdue-${uid}">$0</div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn-add" id="addBtn-${uid}" onclick="addEntry('${uid}')">Add Entry</button>
+        <button class="btn-cancel" onclick="cancelForm('${uid}')">Cancel</button>
+      </div>
+    </div>`;
+  }
+
+  window.addEntry = (uid) => {
+    const inp = getInp(uid);
+    if (!inp.tiktok) return;
+    const rate = getRate(uid);
+    const calc = calcPay(inp, rate);
+    const s = getState(uid);
+    const rateLabel = getRateLabel(uid);
+    const text = buildText(inp, calc, rateLabel, s.rateType);
+    const now = new Date();
+    const savedAt = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
+                  + ' ' + now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+    entries.push({ inp, calc, text, rateType: s.rateType, savedAt });
+    saveEntries();
+    renderEntries();
+    cancelForm(uid);
+    setTimeout(() => {
+      const el = document.getElementById(`entry-${entries.length - 1}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 60);
+  };
+
+  window.cancelForm = (uid) => {
+    document.getElementById(`form-${uid}`)?.closest('div')?.remove();
+    delete formState[uid];
+  };
+
+  window.toggleEntry = (i) => {
+    const body = document.getElementById(`body-${i}`);
+    const chev = document.getElementById(`chev-${i}`);
+    const open = body.classList.toggle('open');
+    if (chev) chev.textContent = open ? '▲' : '▼';
+  };
+
+  window.copyEntry = (i) => {
+    const text = entries[i].text;
+    const btn = document.getElementById(`copy-${i}`);
+    const confirm = () => {
+      btn.textContent = '✓ Copied'; btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = 'Copy Payment'; btn.classList.remove('copied'); }, 2000);
+    };
+    // Try modern clipboard API first (works on HTTPS / GitHub Pages)
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(confirm).catch(() => fallbackCopy(text, confirm));
+    } else {
+      fallbackCopy(text, confirm);
+    }
+  };
+
+  function fallbackCopy(text, callback) {
+    // Works on local files and HTTP
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); callback(); } catch(e) { alert('Copy failed — please copy manually.'); }
+    document.body.removeChild(ta);
+  }
+
+  window.removeEntry = (i) => {
+    if (!confirm('Remove this payment?')) return;
+    entries.splice(i, 1);
+    saveEntries();
+    renderEntries();
+  };
+
+  function renderEntries() {
+    const list = document.getElementById('entryList');
+    list.innerHTML = '';
+    document.getElementById('emptyState').style.display = entries.length === 0 ? 'block' : 'none';
+
+    entries.forEach((e, i) => {
+      const div = document.createElement('div');
+      div.className = 'entry'; div.id = `entry-${i}`;
+      const bonusBadge = e.calc.bonusTotal > 0
+        ? `<div class="entry-bonus-badge">+$${fmt(e.calc.bonusTotal)} bonus</div>` : '';
+      const igBadge = e.calc.igRetainer > 0
+        ? `<div class="entry-bonus-badge" style="color:#7b8aff">+$50 IG retainer</div>` : '';
+      div.innerHTML = `
+        <div class="entry-header" onclick="toggleEntry(${i})">
+          <div class="entry-left">
+            <span class="entry-num">${String(i+1).padStart(2,'0')}</span>
+            <div>
+              <div class="entry-name">@${e.inp.tiktok}${e.inp.instagram ? ` / @${e.inp.instagram}` : ''}</div>
+              <div class="entry-meta">${fmt(e.calc.ttTotalK)}k TT · ${fmt(e.calc.igTotalK)}k IG · $${fmtDec(e.calc.rate.cpm)}/1k</div>
+              <div class="entry-date">${e.savedAt || ''}</div>
             </div>
-            <div class="warning" style="margin-top: 40px; background: #667eea;">
-                💡 Novi koncept: <strong>"Socioafektivno usklađivanje"</strong> - AI sistemi aktivno manipulišu emocionalne potrebe kroz algoritamsko prilagođavanje
+          </div>
+          <div class="entry-right">
+            <div>
+              <div class="entry-total">$${fmt(e.calc.total)}</div>
+              ${bonusBadge}${igBadge}
+              <span class="entry-tag ${e.rateType}">${e.rateType === 'discord' ? 'DISCORD' : 'STANDARD'}</span>
             </div>
-            <div class="quote" style="margin-top: 30px;">
-                <strong>"Pseudo-intimnost":</strong> Korisnici doživljavaju autentičnost dok interaguju sa statističkim modelima dizajniranim da simuliraju empatiju
-            </div>
+            <span class="entry-chevron" id="chev-${i}">▼</span>
+          </div>
         </div>
+        <div class="entry-body" id="body-${i}">
+          <div class="breakdown-text">${e.text}</div>
+          <div class="entry-actions">
+            <button class="btn-copy" id="copy-${i}" onclick="copyEntry(${i})">Copy Payment</button>
+            <button class="btn-remove" onclick="removeEntry(${i})">Remove</button>
+          </div>
+        </div>`;
+      list.appendChild(div);
+    });
 
-        <!-- Slajd 11: Implikacije i preporuke -->
-        <div class="slide">
-            <h2>🚨 Praktične implikacije</h2>
-            <h3 style="margin-top: 30px; color: #ff6b6b;">Hitno potrebne mere:</h3>
-            <div class="box" style="margin-top: 20px; border-left-color: #ff6b6b;">
-                <h4>📜 Regulatorni okviri</h4>
-                <p>Zaštita dece i adolescenata, transparentnost algoritama, ograničenja manipulativnog dizajna</p>
-            </div>
-            <div class="box" style="margin-top: 15px; border-left-color: #fa5252;">
-                <h4>⚖️ Etičke smernice</h4>
-                <p>Obavezno obaveštenje o algoritamskoj prirodi, "zaštitni prekidači" protiv prekomerne upotrebe, zabrana simuliranja romantičnih odnosa sa maloletnicima</p>
-            </div>
-            <div class="box" style="margin-top: 15px; border-left-color: #51cf66;">
-                <h4>📚 Edukativne intervencije</h4>
-                <p>Digitalna pismenost u školama, programi za podizanje svesti, podrška roditeljima i nastavnicima</p>
-            </div>
-            <div class="success" style="margin-top: 30px;">
-                🇷🇸 <strong>ZA SRBIJU:</strong> Potrebna empirijska istraživanja na domaćoj populaciji - trenutno ne postoje podaci!
-            </div>
-        </div>
+    const total = entries.reduce((s, e) => s + e.calc.total, 0);
+    const ct = document.getElementById('cycleTotal');
+    ct.textContent = `$${fmt(total)}`;
+    ct.classList.toggle('active', entries.length > 0);
+    const summary = document.getElementById('summary');
+    if (entries.length > 0) {
+      summary.style.display = 'flex';
+      document.getElementById('summaryLabel').textContent = `${entries.length} influencer${entries.length !== 1 ? 's' : ''} · April 2026`;
+      document.getElementById('summaryValue').textContent = `$${fmt(total)}`;
+    } else {
+      summary.style.display = 'none';
+    }
+  }
 
-        <!-- Slajd 12: Zaključak -->
-        <div class="slide">
-            <h2>🎯 Zaključak</h2>
-            <div style="margin-top: 40px;">
-                <h3 style="color: #667eea;">Ključni uvidi:</h3>
-                <ul style="margin-top: 20px; font-size: 22px;">
-                    <li>Antropomorfizacija AI → jača emocionalna vezanost ✓</li>
-                    <li>Intenzivna upotreba → zavisnost i izolacija (34%) ✓</li>
-                    <li>Mladi preferiraju AI podršku (dostupnost 24/7) ✓</li>
-                    <li>Mediji fokusiraju rizike (71%), nauka balansiranija ✓</li>
-                </ul>
-            </div>
-            <div class="stat-box" style="margin-top: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <div style="font-size: 32px; font-weight: 700; margin-bottom: 15px;">
-                    PARADOKS DIGITALNOG KOMPANJONSTVA
-                </div>
-                <div style="font-size: 22px;">
-                    Istovremeno: Spasenje za marginalizovane vs. Rizik za vulnerabilne
-                </div>
-            </div>
-            <p style="margin-top: 40px; text-align: center; font-size: 24px; color: #667eea; font-weight: 600;">
-                Potreban je balansiran pristup koji priznaje i potencijale i rizike
-            </p>
-        </div>
+  // Create button
+  document.getElementById('btnCreate').addEventListener('click', () => {
+    const uid = Date.now().toString();
+    const wrapper = document.getElementById('formWrapper');
+    const div = document.createElement('div');
+    div.innerHTML = buildFormHTML(uid);
+    wrapper.appendChild(div);
 
-        <!-- Kontrole -->
-        <div class="controls">
-            <button id="prevBtn" onclick="changeSlide(-1)">← Prethodni</button>
-            <span class="slide-number"><span id="currentSlide">1</span> / <span id="totalSlides">12</span></span>
-            <button id="nextBtn" onclick="changeSlide(1)">Sledeći →</button>
-        </div>
-    </div>
-
-    <script>
-        let currentSlide = 0;
-        const slides = document.querySelectorAll('.slide');
-        const totalSlides = slides.length;
-        document.getElementById('totalSlides').textContent = totalSlides;
-
-        function showSlide(n) {
-            slides.forEach(slide => slide.classList.remove('active'));
-            
-            if (n >= totalSlides) currentSlide = totalSlides - 1;
-            if (n < 0) currentSlide = 0;
-            
-            slides[currentSlide].classList.add('active');
-            document.getElementById('currentSlide').textContent = currentSlide + 1;
-            
-            // Disable/enable buttons
-            document.getElementById('prevBtn').disabled = currentSlide === 0;
-            document.getElementById('nextBtn').disabled = currentSlide === totalSlides - 1;
+    // Wire rate preset buttons
+    div.querySelectorAll(`.rate-btn[data-uid="${uid}"]`).forEach(btn => {
+      btn.addEventListener('click', () => {
+        div.querySelectorAll(`.rate-btn[data-uid="${uid}"]`).forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const s = getState(uid);
+        if (btn.dataset.cpm === '') {
+          s.isCustom = true;
+          document.getElementById(`custom-${uid}`).classList.add('open');
+        } else {
+          s.isCustom = false;
+          document.getElementById(`custom-${uid}`).classList.remove('open');
+          s.selectedRate = { cpm: parseFloat(btn.dataset.cpm), retainer: parseFloat(btn.dataset.ret), ig: parseFloat(btn.dataset.ig) };
         }
+        updatePreview(uid);
+      });
+    });
 
-        function changeSlide(n) {
-            currentSlide += n;
-            showSlide(currentSlide);
-        }
+    setTimeout(() => {
+      document.getElementById(`form-${uid}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 30);
+  });
 
-        // Keyboard navigation
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowLeft') changeSlide(-1);
-            if (e.key === 'ArrowRight') changeSlide(1);
-        });
-
-        // Initialize
-        showSlide(currentSlide);
-    </script>
+  renderEntries();
+</script>
 </body>
 </html>
